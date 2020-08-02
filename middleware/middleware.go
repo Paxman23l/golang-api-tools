@@ -5,16 +5,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/julienschmidt/httprouter"
-
 	"github.com/Paxman23l/golang-api-tools/models"
 	"github.com/Paxman23l/golang-api-tools/utils"
+	"github.com/gin-gonic/gin"
 )
 
 // AuthenticationRequired checks to see if the jwt has the correct roles
-func AuthenticationRequired(h httprouter.Handle, roles []string) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		userRoles := utils.GetRoles(r)
+func AuthenticationRequired(roles []string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		userRoles := utils.GetRoles(c)
 		isInRoles := true
 		var missingRoles []string
 		for _, role := range roles {
