@@ -32,3 +32,10 @@ type Metadata struct {
 	Success bool     `json:"success"`
 	// fields: string `json:message,omitempty`
 }
+
+// JSONResponse generates json for a response
+type JSONResponse struct {
+	// Reserved field to add some meta information to the API response
+	Meta interface{} `json:"metadata"`
+	Data interface{} `json:"data"`
+}

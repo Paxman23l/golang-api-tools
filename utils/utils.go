@@ -2,9 +2,11 @@ package utils
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
+	"net/http"
 	"strings"
 	"time"
 
@@ -12,7 +14,6 @@ import (
 	"github.com/Paxman23l/golang-api-tools/models"
 	"github.com/dgrijalva/jwt-go/v4"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
 )
@@ -22,21 +23,22 @@ import (
 type txnFunc func(*gorm.DB) error
 
 // IsInRole returns if a user is in specified Role
-func IsInRole(c *gin.Context, role string) bool {
-	roles := GetRoles(c)
-	lowerCaseRole := strings.ToLower(role)
-	for _, n := range roles {
-		if lowerCaseRole == strings.ToLower(n) {
-			return true
-		}
-	}
+// func IsInRole(c *gin.Context, role string) bool {
+// 	// roles := GetRoles(c)
+// 	// lowerCaseRole := strings.ToLower(role)
+// 	// for _, n := range roles {
+// 	// 	if lowerCaseRole == strings.ToLower(n) {
+// 	// 		return true
+// 	// 	}
+// 	// }
 
-	return false
-}
+// 	// return false
+// 	return false
+// }
 
 // GetRoles returns the roles for the user
-func GetRoles(c *gin.Context) []string {
-	claims, err := GetClaims(c)
+func GetRoles(r *http.Request) []string {
+	claims, err := GetClaims(r)
 	if err != nil || claims.Role == nil {
 		return []string{}
 	}
@@ -44,9 +46,9 @@ func GetRoles(c *gin.Context) []string {
 }
 
 // GetClaims returns info out of jwt token
-func GetClaims(c *gin.Context) (models.ISClaims, error) {
+func GetClaims(r *http.Request) (models.ISClaims, error) {
 	var claims models.ISClaims
-	reqToken := c.Request.Header.Get("Authorization")
+	reqToken := r.Header.Get("Authorization")
 	splitToken := strings.Split(reqToken, "Bearer")
 	if len(splitToken) != 2 {
 		// Error: Bearer token not in proper format
@@ -140,20 +142,24 @@ func IndexOfString(element string, data []string) int {
 }
 
 // GenerateResponse generates a response for the api
-func GenerateResponse(status int, c *gin.Context, data interface{}, meta *models.Metadata) {
+func GenerateResponse(status int, w http.ResponseWriter, data interface{}, meta *models.Metadata) {
 
 	// Set for successful status codes
 	if status >= 200 && status <= 299 {
 		meta.Success = true
 	}
 
-	c.JSON(
-		status,
-		gin.H{
-			"data":     data,
-			"metadata": meta,
-		},
-	)
+	w.WriteHeader(status)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	response := &models.JSONResponse{
+		Data: data,
+		Meta: meta,
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		panic(err)
+	}
 }
 
 // ArrayFind takes a slice and looks for an element in it. If found it will
