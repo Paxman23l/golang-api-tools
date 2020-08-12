@@ -3,8 +3,6 @@ package natsconnection
 import (
 	"context"
 	"log"
-	"os"
-	"os/signal"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -32,7 +30,8 @@ func setupConnOptions(opts []nats.Option) []nats.Option {
 }
 
 // Connect connects to nats server and returns instance
-func Connect(url string, name string, rootChannel string, queueName string) {
+// On shutdown, you'll need to call natsconnection.NC.Drain()
+func Connect(url string, name string, username string, password string) {
 	opts := []nats.Option{nats.Name(name)}
 	opts = setupConnOptions(opts)
 
@@ -45,13 +44,13 @@ func Connect(url string, name string, rootChannel string, queueName string) {
 
 	// Setup the interrupt handler to drain so we don't miss
 	// requests when scaling down.
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	<-c
-	log.Println()
-	log.Printf("Draining...")
-	NC.Drain()
-	log.Fatalf("Exiting")
+	// c := make(chan os.Signal, 1)
+	// signal.Notify(c, os.Interrupt)
+	// <-c
+	// log.Println()
+	// log.Printf("Draining...")
+	// NC.Drain()
+	// log.Fatalf("Exiting")
 }
 
 // SubscribeToQueue subscribes on a channel
@@ -61,7 +60,7 @@ func Connect(url string, name string, rootChannel string, queueName string) {
 // only one in each queueName receives the message
 // nats.Msg has the subj in it, so we can do routing from there
 func SubscribeToQueue(subjBase string, queueName string, handlerRouter func(*nats.Msg)) {
-	NC.QueueSubscribe(subjBase+".*", queueName, handlerRouter)
+	NC.QueueSubscribe(subjBase+".>", queueName, handlerRouter)
 }
 
 // Request sends a message and expects a response back
