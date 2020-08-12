@@ -41,7 +41,6 @@ func Connect(url string, name string, username string, password string) {
 	}
 	NC = connection
 	defer NC.Close()
-
 	// Setup the interrupt handler to drain so we don't miss
 	// requests when scaling down.
 	// c := make(chan os.Signal, 1)
@@ -61,6 +60,7 @@ func Connect(url string, name string, username string, password string) {
 // nats.Msg has the subj in it, so we can do routing from there
 func SubscribeToQueue(subjBase string, queueName string, handlerRouter func(*nats.Msg)) {
 	NC.QueueSubscribe(subjBase+".>", queueName, handlerRouter)
+	NC.Flush()
 }
 
 // Request sends a message and expects a response back
