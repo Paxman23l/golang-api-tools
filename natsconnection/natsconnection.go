@@ -32,7 +32,7 @@ func setupConnOptions(opts []nats.Option) []nats.Option {
 }
 
 // Connect connects to nats server and returns instance
-func Connect(url string, name string, rootChannel string, queueName string, handlerRouter func(string, nats.Msg)) {
+func Connect(url string, name string, rootChannel string, queueName string) {
 	opts := []nats.Option{nats.Name(name)}
 	opts = setupConnOptions(opts)
 
