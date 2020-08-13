@@ -167,11 +167,11 @@ func GenerateNatsResponse(status int, msg *nats.Msg, data interface{}, meta *mod
 		meta.Success = true
 	}
 
-	var response models.NatsResponse
-
+	response := &models.NatsResponse{}
+	response.NatsData = &models.NatsData{}
 	response.Status = status
-	response.NatsData.Data = data
-	response.NatsData.Metadata = meta
+	response.Data = data
+	response.Metadata = meta
 
 	jsonData, err := json.Marshal(response)
 	if err != nil {
