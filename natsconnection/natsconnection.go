@@ -3,6 +3,7 @@ package natsconnection
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -31,26 +32,20 @@ func setupConnOptions(opts []nats.Option) []nats.Option {
 
 // Connect connects to nats server and returns instance
 // On shutdown, you'll need to call natsconnection.NC.Drain()
-func Connect(url string, name string, username string, password string) {
-	opts := []nats.Option{nats.Name(name)}
+func Connect(url string, username string, password string) {
+	opts := []nats.Option{}
+	hostname, err := os.Hostname()
+	if err == nil {
+		opts = append(opts, nats.Name(hostname))
+	}
+
 	opts = append(opts, nats.UserInfo(username, password))
 	opts = setupConnOptions(opts)
 
-	connection, err := nats.Connect(url, opts...)
+	NC, err = nats.Connect(url, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
-	NC = connection
-	// defer NC.Close()
-	// Setup the interrupt handler to drain so we don't miss
-	// requests when scaling down.
-	// c := make(chan os.Signal, 1)
-	// signal.Notify(c, os.Interrupt)
-	// <-c
-	// log.Println()
-	// log.Printf("Draining...")
-	// NC.Drain()
-	// log.Fatalf("Exiting")
 }
 
 // SubscribeToQueue subscribes on a channel
