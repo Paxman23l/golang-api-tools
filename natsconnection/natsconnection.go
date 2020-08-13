@@ -33,6 +33,7 @@ func setupConnOptions(opts []nats.Option) []nats.Option {
 // On shutdown, you'll need to call natsconnection.NC.Drain()
 func Connect(url string, name string, username string, password string) {
 	opts := []nats.Option{nats.Name(name)}
+	opts = append(opts, nats.UserInfo(username, password))
 	opts = setupConnOptions(opts)
 
 	connection, err := nats.Connect(url, opts...)
