@@ -2,11 +2,14 @@ package utils
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
 	"strings"
 	"time"
+
+	"github.com/nats-io/nats.go"
 
 	// "gopkg.in/square/go-jose.v2/jwt"
 	"github.com/Paxman23l/golang-api-tools/models"
@@ -154,6 +157,28 @@ func GenerateResponse(status int, c *gin.Context, data interface{}, meta *models
 			"metadata": meta,
 		},
 	)
+}
+
+// GenerateNatsResponse builds responses for nats requests
+func GenerateNatsResponse(status int, msg *nats.Msg, data interface{}, meta *models.Metadata) {
+
+	// Set for successful status codes
+	if status >= 200 && status <= 299 {
+		meta.Success = true
+	}
+
+	var response models.NatsResponse
+
+	response.Status = status
+	response.NatsData.Data = data
+	response.NatsData.Metadata = meta
+
+	jsonData, err := json.Marshal(response)
+	if err != nil {
+		msg.Respond([]byte(err.Error()))
+		return
+	}
+	msg.Respond(jsonData)
 }
 
 // ArrayFind takes a slice and looks for an element in it. If found it will

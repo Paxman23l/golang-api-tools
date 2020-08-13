@@ -32,3 +32,15 @@ type Metadata struct {
 	Success bool     `json:"success"`
 	// fields: string `json:message,omitempty`
 }
+
+// NatsResponse is the parent response
+type NatsResponse struct {
+	Status int `json:"status"`
+	*NatsData
+}
+
+// NatsData is a child to NatsResponse that holds the data and metadata
+type NatsData struct {
+	Data     interface{} `json:"data"`
+	Metadata *Metadata   `json:"metadata"`
+}
