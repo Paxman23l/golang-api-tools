@@ -41,7 +41,7 @@ func Connect(url string, name string, username string, password string) {
 		log.Fatal(err)
 	}
 	NC = connection
-	defer NC.Close()
+	// defer NC.Close()
 	// Setup the interrupt handler to drain so we don't miss
 	// requests when scaling down.
 	// c := make(chan os.Signal, 1)
