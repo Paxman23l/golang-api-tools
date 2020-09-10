@@ -32,7 +32,7 @@ func setupConnOptions(opts []nats.Option) []nats.Option {
 
 // Connect connects to nats server and returns instance
 // On shutdown, you'll need to call natsconnection.NC.Drain()
-func Connect(url string, username string, password string) {
+func Connect(url string, username string, password string) (*nats.Conn, error) {
 	opts := []nats.Option{}
 	hostname, err := os.Hostname()
 	if err == nil {
@@ -46,6 +46,7 @@ func Connect(url string, username string, password string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	return NC, err
 }
 
 // SubscribeToQueue subscribes on a channel
