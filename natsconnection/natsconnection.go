@@ -2,11 +2,14 @@ package natsconnection
 
 import (
 	"context"
-	"log"
+	"fmt"
+
+	// "log"
 	"os"
 	"time"
 
 	"github.com/nats-io/nats.go"
+	log "github.com/sirupsen/logrus"
 )
 
 // NC is a connection to the nats Server
@@ -19,13 +22,16 @@ func setupConnOptions(opts []nats.Option) []nats.Option {
 	opts = append(opts, nats.ReconnectWait(reconnectDelay))
 	opts = append(opts, nats.MaxReconnects(int(totalWait/reconnectDelay)))
 	opts = append(opts, nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
-		log.Printf("Disconnected due to: %s, will attempt reconnects for %.0fm", err, totalWait.Minutes())
+		msg := fmt.Sprintf("Nats disconnected due to: %s, will attempt reconnects for %.0fm", err, totalWait.Minutes())
+		log.Warning(msg)
 	}))
 	opts = append(opts, nats.ReconnectHandler(func(nc *nats.Conn) {
-		log.Printf("Reconnected [%s]", nc.ConnectedUrl())
+		msg := fmt.Sprintf("Reconnected [%s]", nc.ConnectedUrl())
+		log.Info(msg)
 	}))
 	opts = append(opts, nats.ClosedHandler(func(nc *nats.Conn) {
-		log.Fatalf("Exiting: %v", nc.LastError())
+		msg := fmt.Sprintf("Exiting: %v", nc.LastError())
+		log.Fatal(msg)
 	}))
 	return opts
 }
@@ -49,7 +55,7 @@ func Connect(url string, username string, password string) (*nats.Conn, error) {
 	return NC, err
 }
 
-// SubscribeToQueue subscribes on a channel
+// SubscribeToQueue subscribes on a NATS channel
 // subj is the channel to subscribe on
 // queueName, if specified joins the queue so each message is only received by one running container
 // all containers subscribed to a specified subj receive the message unless in a queueName, then
