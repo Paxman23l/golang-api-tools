@@ -1,4 +1,4 @@
-package gin
+package ginutils
 
 import (
 	"encoding/base64"

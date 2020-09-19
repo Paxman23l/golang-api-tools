@@ -1,4 +1,4 @@
-package echo
+package echomiddleware
 
 import (
 	"fmt"
@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/Paxman23l/golang-api-tools/models"
-	"github.com/Paxman23l/golang-api-tools/utils"
+	"github.com/Paxman23l/golang-api-tools/utils/echoutils"
+	"github.com/Paxman23l/golang-api-tools/utils/genericutils"
+
 	"github.com/labstack/echo"
 )
 
@@ -14,10 +16,10 @@ import (
 func IsInOneRole(roles []string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(e echo.Context) error {
-			userRoles := utils.GetRoles(e)
+			userRoles := echoutils.GetRoles(e)
 			isInRoles := false
 			for _, role := range roles {
-				if utils.IsInArray(userRoles, strings.ToLower(role)) == true {
+				if genericutils.IsInArray(userRoles, strings.ToLower(role)) == true {
 					isInRoles = true
 					break
 				}
@@ -30,7 +32,7 @@ func IsInOneRole(roles []string) echo.MiddlewareFunc {
 				// for _, role := range missingRoles {
 				// 	// metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
 				// }
-				utils.EchoGenerateResponse(
+				echoutils.GenerateResponse(
 					http.StatusUnauthorized,
 					e,
 					nil,
@@ -49,12 +51,12 @@ func IsInOneRole(roles []string) echo.MiddlewareFunc {
 // IsInRequiredRoles checks to see if the jwt has the correct roles
 func IsInRequiredRoles(roles []string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) {
-			userRoles := utils.GetRoles(c)
+		return func(c echo.Context) error {
+			userRoles := echoutils.GetRoles(c)
 			isInRoles := true
 			var missingRoles []string
 			for _, role := range roles {
-				if utils.IsInArray(userRoles, strings.ToLower(role)) == false {
+				if genericutils.IsInArray(userRoles, strings.ToLower(role)) == false {
 					isInRoles = false
 					missingRoles = append(missingRoles, role)
 				}
@@ -67,16 +69,16 @@ func IsInRequiredRoles(roles []string) echo.MiddlewareFunc {
 				for _, role := range missingRoles {
 					metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
 				}
-				utils.GenerateResponse(
+				echoutils.GenerateResponse(
 					http.StatusUnauthorized,
 					c,
 					nil,
 					&metadata,
 				)
-				c.Abort()
-				return
+				return nil
 			}
-			c.Next()
+			next(c)
+			return nil
 		}
 	}
 }
@@ -85,10 +87,10 @@ func IsInRequiredRoles(roles []string) echo.MiddlewareFunc {
 // func IsInOneRole(roles []string) gin.HandlerFunc {
 // 	return func(c *gin.Context) {
 
-// 		userRoles := utils.GetRoles(c)
+// 		userRoles := echoutils.GetRoles(c)
 // 		isInRoles := false
 // 		for _, role := range roles {
-// 			if utils.IsInArray(userRoles, strings.ToLower(role)) == true {
+// 			if echoutils.IsInArray(userRoles, strings.ToLower(role)) == true {
 // 				isInRoles = true
 // 				break
 // 			}
@@ -101,7 +103,7 @@ func IsInRequiredRoles(roles []string) echo.MiddlewareFunc {
 // 			// for _, role := range missingRoles {
 // 			// 	// metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
 // 			// }
-// 			utils.GenerateResponse(
+// 			echoutils.GenerateResponse(
 // 				http.StatusUnauthorized,
 // 				c,
 // 				nil,

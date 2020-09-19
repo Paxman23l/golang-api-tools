@@ -1,4 +1,4 @@
-package generic
+package genericutils
 
 import (
 	"encoding/base64"
