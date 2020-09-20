@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Paxman23l/golang-api-tools/utils/genericutils"
+	"github.com/Paxman23l/golang-api-tools/utils/ginutils"
+
 	"github.com/Paxman23l/golang-api-tools/models"
-	"github.com/Paxman23l/golang-api-tools/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,11 +16,11 @@ import (
 func IsInRequiredRoles(roles []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		userRoles := utils.GetRoles(c)
+		userRoles := ginutils.GetRoles(c)
 		isInRoles := true
 		var missingRoles []string
 		for _, role := range roles {
-			if utils.IsInArray(userRoles, strings.ToLower(role)) == false {
+			if genericutils.IsInArray(userRoles, strings.ToLower(role)) == false {
 				isInRoles = false
 				missingRoles = append(missingRoles, role)
 			}
@@ -31,7 +33,7 @@ func IsInRequiredRoles(roles []string) gin.HandlerFunc {
 			for _, role := range missingRoles {
 				metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
 			}
-			utils.GenerateResponse(
+			ginutils.GenerateResponse(
 				http.StatusUnauthorized,
 				c,
 				nil,
@@ -48,10 +50,10 @@ func IsInRequiredRoles(roles []string) gin.HandlerFunc {
 func IsInOneRole(roles []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		userRoles := utils.GetRoles(c)
+		userRoles := ginutils.GetRoles(c)
 		isInRoles := false
 		for _, role := range roles {
-			if utils.IsInArray(userRoles, strings.ToLower(role)) == true {
+			if genericutils.IsInArray(userRoles, strings.ToLower(role)) == true {
 				isInRoles = true
 				break
 			}
@@ -64,7 +66,7 @@ func IsInOneRole(roles []string) gin.HandlerFunc {
 			// for _, role := range missingRoles {
 			// 	// metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
 			// }
-			utils.GenerateResponse(
+			ginutils.GenerateResponse(
 				http.StatusUnauthorized,
 				c,
 				nil,
