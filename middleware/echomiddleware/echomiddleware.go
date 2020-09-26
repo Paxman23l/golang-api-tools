@@ -29,20 +29,15 @@ func IsInOneRole(roles []string) echo.MiddlewareFunc {
 
 				var metadata models.Metadata
 				metadata.Message = "User is not in required role"
-				// for _, role := range missingRoles {
-				// 	// metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
-				// }
 				echoutils.GenerateResponse(
 					http.StatusUnauthorized,
 					e,
 					nil,
 					&metadata,
 				)
-				// e.Response().
-				// 	e.Abort()
-				return next(e)
+
+				return nil
 			}
-			// e.Next()
 			return next(e)
 		}
 	}
@@ -82,36 +77,3 @@ func IsInRequiredRoles(roles []string) echo.MiddlewareFunc {
 		}
 	}
 }
-
-// // IsInOneRole checks to see if the jwt is is one of the roles listed
-// func IsInOneRole(roles []string) gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-
-// 		userRoles := echoutils.GetRoles(c)
-// 		isInRoles := false
-// 		for _, role := range roles {
-// 			if echoutils.IsInArray(userRoles, strings.ToLower(role)) == true {
-// 				isInRoles = true
-// 				break
-// 			}
-// 		}
-
-// 		if isInRoles == false {
-
-// 			var metadata models.Metadata
-// 			metadata.Message = "User is not in required role"
-// 			// for _, role := range missingRoles {
-// 			// 	// metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
-// 			// }
-// 			echoutils.GenerateResponse(
-// 				http.StatusUnauthorized,
-// 				c,
-// 				nil,
-// 				&metadata,
-// 			)
-// 			c.Abort()
-// 			return
-// 		}
-// 		c.Next()
-// 	}
-// }
