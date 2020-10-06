@@ -1,38 +1,36 @@
 package ginmiddleware
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
-	"strings"
 
-	"github.com/Paxman23l/golang-api-tools/utils/genericutils"
 	"github.com/Paxman23l/golang-api-tools/utils/ginutils"
+	"github.com/nats-io/nats.go"
 
 	"github.com/Paxman23l/golang-api-tools/models"
 	"github.com/gin-gonic/gin"
 )
 
+var _nc *nats.Conn
+
+// InitGinMiddleware instantiates the nats connection for checking authorization
+func InitGinMiddleware(nc *nats.Conn) {
+	_nc = nc
+}
+
 // IsInRequiredRoles checks to see if the jwt has the correct roles
 func IsInRequiredRoles(roles []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		userRoles := ginutils.GetRoles(c)
-		isInRoles := true
-		var missingRoles []string
-		for _, role := range roles {
-			if genericutils.IsInArray(userRoles, strings.ToLower(role)) == false {
-				isInRoles = false
-				missingRoles = append(missingRoles, role)
-			}
-		}
-
-		if isInRoles == false {
-
+		res := models.NatsResponse{}
+		reqModel := models.RolesRequest{}
+		claims, err := ginutils.GetClaims(c)
+		reqModel.RequestorID = claims.Subject
+		reqModel.Roles = roles
+		byteReqModel, err := json.Marshal(reqModel)
+		req, err := _nc.RequestWithContext(c, "identity.authorization.isinmultipleroles", byteReqModel)
+		if err != nil || json.Unmarshal(req.Data, &res) != nil || !res.Metadata.Success {
 			var metadata models.Metadata
-			metadata.Message = "User is not in required roles"
-			for _, role := range missingRoles {
-				metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
-			}
+			metadata.Message = "User is not in required role"
 			ginutils.GenerateResponse(
 				http.StatusUnauthorized,
 				c,
@@ -40,7 +38,6 @@ func IsInRequiredRoles(roles []string) gin.HandlerFunc {
 				&metadata,
 			)
 			c.Abort()
-			return
 		}
 		c.Next()
 	}
@@ -49,23 +46,16 @@ func IsInRequiredRoles(roles []string) gin.HandlerFunc {
 // IsInOneRole checks to see if the jwt is is one of the roles listed
 func IsInOneRole(roles []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		userRoles := ginutils.GetRoles(c)
-		isInRoles := false
-		for _, role := range roles {
-			if genericutils.IsInArray(userRoles, strings.ToLower(role)) == true {
-				isInRoles = true
-				break
-			}
-		}
-
-		if isInRoles == false {
-
+		res := models.NatsResponse{}
+		reqModel := models.RolesRequest{}
+		claims, err := ginutils.GetClaims(c)
+		reqModel.RequestorID = claims.Subject
+		reqModel.Roles = roles
+		byteReqModel, err := json.Marshal(reqModel)
+		req, err := _nc.RequestWithContext(c, "identity.authorization.isinrole", byteReqModel)
+		if err != nil || json.Unmarshal(req.Data, &res) != nil || !res.Metadata.Success {
 			var metadata models.Metadata
 			metadata.Message = "User is not in required role"
-			// for _, role := range missingRoles {
-			// 	// metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
-			// }
 			ginutils.GenerateResponse(
 				http.StatusUnauthorized,
 				c,
@@ -73,7 +63,6 @@ func IsInOneRole(roles []string) gin.HandlerFunc {
 				&metadata,
 			)
 			c.Abort()
-			return
 		}
 		c.Next()
 	}

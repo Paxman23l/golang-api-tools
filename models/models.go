@@ -44,3 +44,9 @@ type NatsData struct {
 	Data     interface{} `json:"data"`
 	Metadata *Metadata   `json:"metadata"`
 }
+
+// RolesRequest is used in the request to the identity server for authorization
+type RolesRequest struct {
+	Roles       []string `json:"roles"`
+	RequestorID string   `json:"requestorId"`
+}

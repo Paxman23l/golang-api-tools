@@ -1,32 +1,35 @@
 package echomiddleware
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/Paxman23l/golang-api-tools/models"
 	"github.com/Paxman23l/golang-api-tools/utils/echoutils"
-	"github.com/Paxman23l/golang-api-tools/utils/genericutils"
+	"github.com/nats-io/nats.go"
 
 	"github.com/labstack/echo"
 )
+
+var _nc *nats.Conn
+
+// InitEchoMiddleware instantiates the nats connection for checking authorization
+func InitEchoMiddleware(nc *nats.Conn) {
+	_nc = nc
+}
 
 // IsInOneRole checks to see if the jwt is is one of the roles listed
 func IsInOneRole(roles []string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(e echo.Context) error {
-			userRoles := echoutils.GetRoles(e)
-			isInRoles := false
-			for _, role := range roles {
-				if genericutils.IsInArray(userRoles, strings.ToLower(role)) == true {
-					isInRoles = true
-					break
-				}
-			}
-
-			if isInRoles == false {
-
+			res := models.NatsResponse{}
+			reqModel := models.RolesRequest{}
+			claims, err := echoutils.GetClaims(e)
+			reqModel.RequestorID = claims.Subject
+			reqModel.Roles = roles
+			byteReqModel, err := json.Marshal(reqModel)
+			req, err := _nc.RequestWithContext(e.Request().Context(), "identity.authorization.isinrole", byteReqModel)
+			if err != nil || json.Unmarshal(req.Data, &res) != nil || !res.Metadata.Success {
 				var metadata models.Metadata
 				metadata.Message = "User is not in required role"
 				echoutils.GenerateResponse(
@@ -47,23 +50,16 @@ func IsInOneRole(roles []string) echo.MiddlewareFunc {
 func IsInRequiredRoles(roles []string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			userRoles := echoutils.GetRoles(c)
-			isInRoles := true
-			var missingRoles []string
-			for _, role := range roles {
-				if genericutils.IsInArray(userRoles, strings.ToLower(role)) == false {
-					isInRoles = false
-					missingRoles = append(missingRoles, role)
-				}
-			}
-
-			if isInRoles == false {
-
+			res := models.NatsResponse{}
+			reqModel := models.RolesRequest{}
+			claims, err := echoutils.GetClaims(c)
+			reqModel.RequestorID = claims.Subject
+			reqModel.Roles = roles
+			byteReqModel, err := json.Marshal(reqModel)
+			req, err := _nc.RequestWithContext(c.Request().Context(), "identity.authorization.isinmultipleroles", byteReqModel)
+			if err != nil || json.Unmarshal(req.Data, &res) != nil || !res.Metadata.Success {
 				var metadata models.Metadata
 				metadata.Message = "User is not in required roles"
-				for _, role := range missingRoles {
-					metadata.Errors = append(metadata.Errors, fmt.Sprintf("User must be in %s", role))
-				}
 				echoutils.GenerateResponse(
 					http.StatusUnauthorized,
 					c,
