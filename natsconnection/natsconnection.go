@@ -69,7 +69,9 @@ func SubscribeToQueue(subjBase string, queueName string, handlerRouter func(*nat
 // Request sends a message and expects a response back
 func Request(ctx context.Context, subj string, data []byte, timeOut time.Duration) (*nats.Msg, error) {
 	if ctx != nil {
-		return NC.RequestWithContext(ctx, subj, data)
+		nCtx, cancel := context.WithTimeout(ctx, timeOut)
+		defer cancel()
+		return NC.RequestWithContext(nCtx, subj, data)
 	}
 	return NC.Request(subj, data, timeOut)
 }
