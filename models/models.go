@@ -25,11 +25,17 @@ type ISClaims struct {
 	SchoolID             string   `json:"school_id,omitempty"`
 }
 
+// Error is a basic structure for all errors coming out of the api
+type Error struct {
+	Message string `json:"message"`
+	Field   string `json:"field"`
+}
+
 // Metadata is basic data about the data being returned from the api
 type Metadata struct {
-	Message string   `json:"message"`
-	Errors  []string `json:"errors"`
-	Success bool     `json:"success"`
+	Message string  `json:"message"`
+	Errors  []Error `json:"errors"`
+	Success bool    `json:"success"`
 	// fields: string `json:message,omitempty`
 }
 
