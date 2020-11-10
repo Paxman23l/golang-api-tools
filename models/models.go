@@ -28,7 +28,7 @@ type ISClaims struct {
 // Error is a basic structure for all errors coming out of the api
 type Error struct {
 	Message string `json:"message"`
-	Field   string `json:"field"`
+	Field   string `json:"field,omitempty"`
 }
 
 // Metadata is basic data about the data being returned from the api
