@@ -10,12 +10,12 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go"
+	"gorm.io/gorm"
 
 	// "gopkg.in/square/go-jose.v2/jwt"
 	"github.com/Paxman23l/golang-api-tools/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
 )
 
