@@ -31,11 +31,18 @@ type Error struct {
 	Field   string `json:"field,omitempty"`
 }
 
+// Cursor is used for pagination
+type Cursor struct {
+	Prev string `json:"prev"`
+	Next string `json:"next"`
+}
+
 // Metadata is basic data about the data being returned from the api
 type Metadata struct {
 	Message string  `json:"message"`
 	Errors  []Error `json:"errors"`
 	Success bool    `json:"success"`
+	Cursor  Cursor  `json:"cursor"`
 	// fields: string `json:message,omitempty`
 }
 
